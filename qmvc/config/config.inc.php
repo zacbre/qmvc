@@ -18,10 +18,10 @@
 */
 
 // Database Configuration
-define("DB_USERNAME", "");
+define("DB_USERNAME", "thrdev");
 define("DB_PASSWORD", "");
 define("DB_HOST", "");
-define("DB_NAME", "");
+define("DB_NAME", "qmvc");
 
 // Required for Google's Recaptcha, Uncomment if needed
 /*
@@ -37,9 +37,9 @@ define("SITE_URL", "");
 define("SESSION_NAME", "qmvc");
 
 // Use memcached? Must have php-memcached and memcached installed.
-define("USE_MEMCACHED", true);
+define("USE_MEMCACHED", false);
 
 /* Homepage Routes */
 $router->Connect("/", array("controller" => "index"));
-$router->Connect("/404", array("controller" => "notfound", "error_page" => "404", "action" => "notfound"));
+$router->Connect("/404", array("controller" => "notfound", "error_page" => "404"));
 
