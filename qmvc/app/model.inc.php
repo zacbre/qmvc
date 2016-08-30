@@ -45,7 +45,6 @@ class Model {
         }
         
         //
-        
         $this->db = $GLOBALS['__mydb'];
         $this->dbinst = $this->db->instance();
     }
