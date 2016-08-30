@@ -18,3 +18,6 @@ location / {
 I've started documenting different functions within qmvc. If you take a look at app/controller.inc.php you should be able to see some of the function declarations. Make sure you only use the ones that are below "User Callable Functions".
 
 I've included some sample files with the MVC to document how this works and some simple ways to use it.
+
+I will keep the wiki updated with the latest documentation.
+https://github.com/ThrDev/qmvc/wiki
