@@ -339,6 +339,11 @@ class Model {
         
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+    
+    public function exists($arr) {
+        $value = $this->find('all', array('conditions' => $arr));
+        return ($value != false && count($value) > 0);
+    }
 
     public function rawquery($sql) {
         $result = $this->dbinst->query($sql);

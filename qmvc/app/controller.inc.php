@@ -98,6 +98,7 @@ class Controller {
     
     private $pre_defines;
     private $appends = array();
+    private $prepends = array();
     
     /**
      *
@@ -117,10 +118,12 @@ class Controller {
     
     private function __loadmodel($name = "") {
         $modelname = "";
-        
+        $return = false;
         if(empty($name)) {
             $name = str_replace("controller", "", strtolower($this->__getname())).".model.php";
             $modelname = strtolower($this->__getname());    
+        } else {
+            $return = true;
         }
             
         $preclasses = get_declared_classes();
@@ -137,8 +140,12 @@ class Controller {
             $instance = new $class[0]();
         }
         
-        $name = $instance->__getmodelname();
-        $this->$name = $instance;
+        if(!$return) {
+            $name = $instance->__getmodelname();
+            $this->$name = $instance;
+        } else {
+            return $instance;
+        }
     }
     
     private function __getname() {
@@ -261,18 +268,40 @@ class Controller {
         $this->$name = $instance;
     }
     
+    public function loadModel($name) {
+        //load our model.
+        $this->__loadmodel($name);
+    }
     
     /**
      *
-     * Loads in a module defined by the modules folder.
+     * Prepends content to an element before it's loaded in.
      * 
-     * Example: $this->uses("auth");
-     * Will set $this->auth to new instance of the auth module.
+     * Example: $this->prepend("head", $content);
+     * Will prepend $content to "head.element.php" when loaded in.
      * 
      * @param string $name 
-     *      Name of module to load (without .php)
-     * @param array $array
-     *      Optional values to pass to the construct parameter of the module
+     *      Name of element to prepend to (without .element.php)
+     * @param string $content
+     *      Content to load before element is loaded.
+     * 
+     */
+    public function prepend($name, $content) {
+        $this->prepends[$name] = $content;
+    }
+    
+    
+    /**
+     *
+     * Appends content to an element before it's loaded in.
+     * 
+     * Example: $this->append("head", $content);
+     * Will append $content to "head.element.php" when loaded in.
+     * 
+     * @param string $name 
+     *      Name of element to append to (without .element.php)
+     * @param string $content
+     *      Content to load after element is loaded.
      * 
      */
     public function append($name, $content) {
@@ -430,6 +459,10 @@ class Controller {
      */
     public function fetch($ele) {
         //fetch a layout.
+        if(array_key_exists($ele, $this->prepends)) {
+            echo $this->prepends[$ele];
+        }
+        
         if(!$this->__loadfile(array("views", "elements", $ele.".element.php"))) {
             //error.
             throw new Exception("Couldn't load the specified element.");

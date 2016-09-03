@@ -17,11 +17,12 @@ class IndexModel extends Model {
     
     /* Runs before a save query */
     public function beforeSave($array) {
+        //make sure to bcrypt password?
         return $array;
     }
     
     /* Runs after a save query */
-    public function afterSave($array) {
+    public function afterSave($created, $array) {
         
     }
 }

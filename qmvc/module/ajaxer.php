@@ -30,6 +30,7 @@ class Ajaxer extends Module {
                 var verified = false;
                 var failed = false;
                 var failedid = "";
+                var successid = "";
                 var error = false;
                 var allowsubmitagain = true;
                 
@@ -69,10 +70,14 @@ class Ajaxer extends Module {
                             } else {
                                 allowsubmitagain = false;
                                 ajaxer_success(form, data.msg);
-                                <?php if(array_key_exists("redirect", $values)) { ?>
+                                <?php if(array_key_exists("redirect", $values) && $values['redirect'] != false) { ?>
                                     setTimeout(function() {
                                         window.location.href="<?php echo $values["redirect"]; ?>";
                                     }, 5000);
+                                <?php } else { ?>
+                                    allowsubmitagain = true;
+                                    verified = false;
+                                    //make sure to remove success message when they resubmit?
                                 <?php } ?>
                             }
                         });
@@ -96,7 +101,8 @@ class Ajaxer extends Module {
                 }
                 
                 var ajaxer_error = function(form, errmsg) {
-                    if(failedid != "") jQuery("#"+failedid).slideUp('fast');
+                    if(failedid != "") jQuery("#"+failedid).slideUp('fast', function() { jQuery(this).remove(); });
+                    if(successid != "") jQuery("#"+successid).slideUp('fast', function() { jQuery(this).remove(); });
                     failedid = generatestr();
                     //slideup any existing fields.
                     form.prepend('<div id="'+failedid+'" class="<?php echo $values["error"]; ?>" style="display: none;" role="alert">'+errmsg+'</div>');
@@ -104,8 +110,9 @@ class Ajaxer extends Module {
                 }
                 
                 var ajaxer_success = function(form, msg) {
-                    if(failedid != "") jQuery("#"+failedid).slideUp('fast');
-                    var successid = generatestr();
+                    if(failedid != "") jQuery("#"+failedid).slideUp('fast', function() { jQuery(this).remove(); });
+                    if(successid != "") jQuery("#"+successid).slideUp('fast', function() { jQuery(this).remove(); });
+                    successid = generatestr();
                     form.prepend('<div id="'+successid+'" class="<?php echo $values["success"]; ?>" style="display: none;" role="alert">'+msg+'</div>');
                     jQuery("#"+successid).slideDown('fast');
                 }

@@ -1,0 +1,7 @@
+div.alert.alert-success {
+    color: green;
+}
+
+div.alert.alert-danger {
+    color: red;
+}

@@ -33,6 +33,7 @@ class Auth {
                 $this->_user_info = $_SESSION['auth']->_user_info;
             }
         } else {
+            if(!isset($_SESSION['auth'])) { return; }
             $row = $this->users->find("all", array("conditions" => array(
                 "email" => $_SESSION['auth']['email'],
                 "id" => $_SESSION['auth']['id'],
