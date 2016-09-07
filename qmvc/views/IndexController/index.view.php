@@ -21,7 +21,12 @@
     <?php var_dump($admin_user); ?>
 </pre>
 <hr>
-
+<p>Did the login attempt succeed? <b><?php echo ($loggedin ? "Yes" : "No"); ?></b></p>
+<p>Our login creds array:</p>
+<pre>
+    <?php var_dump($login_attempt); ?>
+</pre>
+<hr>
 <p>Here's an ajax form example: (try submitting before typing anything)</p>
 
 <?php
@@ -31,6 +36,6 @@
         'placeholder' => "Secret Code",
         'name' => 'secretcode',
     ));
-    $this->form->submit(array('text' => "Submit Code"));
+    $this->form->submit(array('value' => "Submit Code"));
     $this->form->end();
 ?>

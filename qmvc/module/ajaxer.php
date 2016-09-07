@@ -82,6 +82,7 @@ class Ajaxer extends Module {
                             }
                         });
                     }
+                    verified = false;
                     return false;
                 });
                 

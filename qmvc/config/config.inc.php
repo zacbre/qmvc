@@ -43,3 +43,4 @@ define("USE_MEMCACHED", false);
 $router->Connect("/", array("controller" => "index"));
 $router->Connect("/404", array("controller" => "notfound", "error_page" => "404"));
 
+$router->Connect('/submit', array('controller' => 'index', 'action' => 'submit'));

@@ -17,15 +17,6 @@ class IndexController extends Controller {
     public function index() {
         $this->set('title', 'QMVC');
         
-        //check for our ajax form test POST.
-        if($this->request->is_post()) {
-            if($this->request->data['secretcode'] != 'test') {
-                exit(json_encode(array("error" => true, "error_msg" => "Incorrect code.")));
-            } else {
-                exit(json_encode(array("error" => false, "msg" => 'You guessed the code correctly!')));    
-            }
-        }
-        
         //save a new admin user.
         if(!$this->auth->register(array(
             'email' => 'admin',
@@ -45,8 +36,21 @@ class IndexController extends Controller {
         
         $this->set('admin_user', $admin);
         
+        $user = array(
+            'email' => 'admin',
+            'password' => 'test',
+        );
+        //attempt to verify the user.
+        if($this->auth->attempt($user)) {
+            //we've logged in.
+            $this->set('loggedin', true);
+            $this->set('login_attempt', $user);
+        } else {
+            $this->set('loggedin', false);
+        }
+        
         $this->append("head", $this->ajaxer->setup(array(
-            "url" => $this->getURL(), 
+            "url" => $this->getURL('/submit'), 
             "form" => "ajaxform",
             "redirect" => false,
             "required" => array("secretcode"),
@@ -54,5 +58,16 @@ class IndexController extends Controller {
             "success" => "alert alert-success",
             "error" => "alert alert-danger",
         )));
+    }
+    
+    public function submit() {
+        //check for our ajax form test POST.
+        if($this->request->is_post()) {
+            if($this->request->data['secretcode'] != 'test') {
+                exit(json_encode(array("error" => true, "error_msg" => "Incorrect code.")));
+            } else {
+                exit(json_encode(array("error" => false, "msg" => 'You guessed the code correctly!')));    
+            }
+        }
     }
 }
