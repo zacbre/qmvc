@@ -4,9 +4,7 @@ class IndexController extends Controller {
     
     /* Runs right when controller is loaded */
     public function __onload() {
-        $this->uses('auth');
-        $this->uses('ajaxer');
-        $this->uses('form');
+        $this->uses(array('auth', 'ajaxer', 'form'));
     }
     
     /* Runs right before page is rendered */

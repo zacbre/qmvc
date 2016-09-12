@@ -30,12 +30,11 @@
 <p>Here's an ajax form example: (try submitting before typing anything)</p>
 
 <?php
-    $this->form->create(array('id' => 'ajaxform'));
-    $this->form->input(array(
+    $this->form->create('ajaxform');
+    $this->form->input('secretcode', array(
         'type' => 'text',
         'placeholder' => "Secret Code",
-        'name' => 'secretcode',
     ));
-    $this->form->submit(array('value' => "Submit Code"));
+    $this->form->submit('Submit');
     $this->form->end();
 ?>

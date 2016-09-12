@@ -227,45 +227,53 @@ class Controller {
      * Example: $this->uses("auth");
      * Will set $this->auth to new instance of the auth module.
      *
-     * @param string $name 
-     *      Name of module to load (without .php)
+     * @param string|array $name 
+     *      Name or array of names of modules to load (without .php)
      * @param array $array
      *      Optional values to pass to the construct parameter of the module
      * 
      */
-    public function uses($name, $array = array()) {
+    public function uses($module, $array = array()) {
         //attempt to load library
-        $preclasses = get_declared_classes();
-        $instance = null;
-        if(!$this->__loadfile(array("module", $name.".php"))) {
-            //err.
-            throw new Exception("Module not found: ".$name." in modules/".$name.".php.");
-        } else {
-            $postclasses = get_declared_classes();
-            
-            $class = array_diff($postclasses, $preclasses);
-            $class = array_values($class);
-            
-            if(count($array) <= 0)
-                $instance = new $class[0]();
-            else
-                $instance = new $class[0]($array);
-                
-            //get name of instance. pass it our model?
-            if(isset($instance->uses))
-                if(array_key_exists("model", $instance->uses)) {
-                    //we need to make a model loader so modules can use them
-                    foreach($instance->uses["model"] as $value) {
-                        $model = $this->__loadmodel($value);
-                        $instance->$value = $model;
-                    }
-                }
-        }
         
-        if(is_callable(array($instance, "__onload")))
-            $instance->__onload();
+        $names = array();
+        if(is_array($module))
+            $names = $module;
+        else
+            $names[] = $module;
             
-        $this->$name = $instance;
+        foreach($names as $name) {
+            $preclasses = get_declared_classes();
+            $instance = null;
+            if(!$this->__loadfile(array("module", $name.".php"))) {
+                //err.
+                throw new Exception("Module not found: ".$name." in modules/".$name.".php.");
+            } else {
+                $postclasses = get_declared_classes();
+                
+                $class = array_diff($postclasses, $preclasses);
+                $class = array_values($class);
+                
+                if(count($array) <= 0)
+                    $instance = new $class[0]();
+                else
+                    $instance = new $class[0]($array);
+                    
+                //get name of instance. pass it our model?
+                if(isset($instance->uses))
+                    if(array_key_exists("model", $instance->uses)) {
+                        //we need to make a model loader so modules can use them
+                        foreach($instance->uses["model"] as $value) {
+                            $model = $this->__loadmodel($value);
+                            $instance->$value = $model;
+                        }
+                    }
+            }
+            if(is_callable(array($instance, "__onload")))
+                $instance->__onload();
+                
+            $this->$name = $instance;
+        }
     }
     
     public function loadModel($name) {

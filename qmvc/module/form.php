@@ -21,7 +21,7 @@ class Formify extends Module {
     private $form;
     private $prerender = true;
     
-    public function create($values) {
+    public function create($id, $values = array()) {
         /*
         id, class, method = post, prerender = true, action = current url
         */
@@ -40,7 +40,7 @@ class Formify extends Module {
         }
         $out = rtrim($out);
 
-        $form = sprintf('<form %s>', $out);
+        $form = sprintf('<form id="%s" %s>', $id, $out);
         
         if($this->prerender) {
             echo $form;    
@@ -49,14 +49,14 @@ class Formify extends Module {
         }
     }
     
-    public function input($values) {
+    public function input($name, $values = array()) {
         /*
         id; class; placeholder; type = text/email/password/tel,checkbox,radio,file,number
         coming soon: type = range,date,color,reset,month,time,url,week,
         */
         if(!array_key_exists('type', $values))
             throw new Exception('No type specified for form field.');
-        if(!array_key_exists('name', $values))
+        if(empty($name))
             throw new Exception('No name specified for form field.');
 
         $out = "";
@@ -65,7 +65,7 @@ class Formify extends Module {
         }
         $out = rtrim($out);
         
-        $forminput = sprintf('<input %s>', $out);
+        $forminput = sprintf('<input name="%s" %s>', $name, $out);
         
         if($this->prerender) {
             echo $forminput;
@@ -74,7 +74,7 @@ class Formify extends Module {
         }
     }
     
-    public function submit($values) {
+    public function submit($name, $values = array()) {
         /* 
         id, class, text,
         */
@@ -84,7 +84,7 @@ class Formify extends Module {
         }
         $out = rtrim($out);
         
-        $formsubmit = sprintf('<input type="submit" %s>', $out);
+        $formsubmit = sprintf('<input value="%s" type="submit" %s>', $name, $out);
         if($this->prerender) {
             echo $formsubmit;
         } else {
@@ -92,9 +92,9 @@ class Formify extends Module {
         }
     }
     
-    public function hidden($values) {
+    public function hidden($name, $values = array()) {
         $values['type'] = 'hidden';
-        $this->input($values);
+        $this->input($name, $values);
     }
     
     public function end() {
