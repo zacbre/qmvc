@@ -20,9 +20,4 @@ class IndexModel extends Model {
         //make sure to bcrypt password?
         return $array;
     }
-    
-    /* Runs after a save query */
-    public function afterSave($created, $array) {
-        
-    }
 }

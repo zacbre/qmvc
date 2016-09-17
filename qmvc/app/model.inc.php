@@ -21,10 +21,12 @@ class Database {
     private $conn;
     
     public function __construct() {
-        $this->conn = mysqli_connect(DB_HOST,DB_USERNAME,DB_PASSWORD,DB_NAME);
-    
-        if(!$this->conn) {
-            die;
+        try {
+            $this->conn = new PDO(sprintf('mysql:host=%s;dbname=%s;charset=utf8', DB_HOST, DB_NAME), DB_USERNAME, DB_PASSWORD);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        }
+        catch(PDOException $e) {
+            throw new Exception($e->getMessage());        
         }
     }
     
@@ -51,6 +53,45 @@ class Model {
     
     public function __getmodelname() {
         return $this->name;
+    }
+    
+    private function __prepared($query, $binds, $return = true) {
+        try {
+
+            $stmt = $this->dbinst->prepare($query);
+            
+            $stmt->execute($binds);
+            
+            if($stmt->rowCount() <= 0) return false;
+            
+            if(!$return) return true;
+            
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            if(!($result = $this->afterFind($result))) return false;
+            
+            return $result;
+        }
+        catch(PDOException $e) {
+            throw new Exception($e->getMessage());
+        }
+    }
+    
+    private function __conditions($array) {
+        $conditions = array();
+        if(array_key_exists('conditions', $array)) {
+            $i = 0;
+            $conditions[0] = " WHERE ";
+            foreach($array['conditions'] as $name => $val) {
+                $conditions[0] .= sprintf("`%s` = ?", $name);
+                $conditions[] = $val;
+                if($i++ != (count($array['conditions']) - 1)) {
+                    $conditions[0] .= " AND ";
+                }
+            }
+        }
+        
+        return $conditions;
     }
 
     /**********************
@@ -84,38 +125,11 @@ class Model {
         return $array;
     }
     
-    public function afterSave($created, $array) {
-        //any data that has been saved
-        
-    }
-    
     public function find($type = 'all', $array = array()) {
         
-        if(!($array = $this->beforeFind($array))) return false;
+        if(($array = $this->beforeFind($array)) === false) return false;
         
-        $conditions = "";
-        $conditionstring = "";
-        $conditioncount = 0;
-        $conditionparam = array();
-        if(array_key_exists('conditions', $array)) {
-            $conditions = " WHERE ";
-            $i = 0;
-            $conditioncount = count($array['conditions']);
-            foreach($array['conditions'] as $name => $val) {
-                $conditions .= sprintf("`%s` = ?", $name);
-                $conditionstring .= "s";
-                if($i++ != ($conditioncount - 1)) {
-                    $conditions .= " AND ";
-                }
-            }
-            
-            $conditionparam[] = &$conditionstring;
-            
-            $conds = array_values($array['conditions']);
-            for($i = 0; $i < count($conds); $i++) {
-                $conditionparam[] = &$conds[$i];
-            }
-        }
+        $conditions = $this->__conditions($array);
         
         $fields = "";
         if(array_key_exists('fields', $array)) {
@@ -142,132 +156,56 @@ class Model {
                 break;
         }
         
-        $query = sprintf("SELECT %s FROM `%s`%s %s", $type, $this->__getmodelname(), $conditions, $options);
-
-        $stmt = $this->dbinst->prepare($query);
+        $query = sprintf("SELECT %s FROM `%s`%s %s", $type, $this->__getmodelname(), array_shift($conditions), $options);
         
-        if(!$stmt) {
-            return false;
-        }
-        
-        if(count($conditionparam) > 0)
-            call_user_func_array(array($stmt, 'bind_param'), $conditionparam);
-        
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        
-        $stmt->close();
-        
-        if($result->num_rows <= 0) return false;
-        
-        $result = $result->fetch_all(MYSQLI_ASSOC);
-
-        if(!($result = $this->afterFind($result))) return false;
-        
-        return $result;
+        return $this->__prepared($query, $conditions);
     }
     
     public function save($array) {
+        // UPDATE `users` SET `test`=? WHERE `test`=?
+        // INSERT INTO `users` (test,test,test,test) VALUES(?,?,?,?)
         
         if(!array_key_exists('values', $array)) return false;
         
-        if(!($array = $this->beforeSave($array))) return false;
-        
-        $conditionstring = "";
-        $conditionparam = array();
-        
-        $updatestr = " (";
-        $valstr = "";
-        $update = "";
-        
-        $count = count($array['values']);
-        $i = 0;
-        
-        foreach($array['values'] as $key => $value) {
-            $update .= sprintf("`%s` = ?", $key);
-            $valstr .= "?";
-            $conditionstring .= "s";
-            $updatestr .= $key;
-            if($i++ != ($count - 1)) {
-                $update .= ", ";
-                $updatestr .= ",";
-                $valstr .= ",";
-            } else {
-                $updatestr .= ")";
-            }
-        }
-        
-        if(array_key_exists('conditions', $array) && count($this->find('all', $array['conditions'])) > 0) {
-            $conditions = " WHERE ";
-            $conditioncount = 0;
-            $i = 0;
-            $conditioncount = count($array['conditions']);
+        if(($array = $this->beforeSave($array)) === false) return false;
+
+        if(array_key_exists('conditions', $array)) {
             
-            foreach($array['conditions'] as $name => $val) {
-                $conditions .= sprintf("`%s` = ?", $name);
-                $conditionstring .= "s";
-                if($i++ != ($conditioncount - 1)) {
-                    $conditions .= " AND ";
+            $conditions = $this->__conditions($array);
+            
+            $values = array('');
+            $i = 0;
+            foreach($array['values'] as $key => $val) {
+                $values[0] .= sprintf('`%s` = ?', $key);
+                $values[] = $val;
+                if($i++ != count($array['values']) - 1) {
+                    $values[0] .= ', ';
                 }
             }
             
-            $conditionparam[] = &$conditionstring;
+            $query = sprintf("UPDATE `%s` SET %s%s", $this->__getmodelname(), array_shift($values), array_shift($conditions));
             
-            $vals = array_values($array['values']);
-            for($i = 0; $i < count($vals); $i++) {
-                $conditionparam[] = &$vals[$i];
-            }
+            $values = array_merge($values, $conditions);
             
-            $cond = array_values($array['conditions']);
-            for($i = 0; $i < count($cond); $i++) {
-                $conditionparam[] = &$cond[$i];
-            }
-            
-            //update
-            $query = sprintf("UPDATE `%s` SET %s%s", $this->__getmodelname(), $update, $conditions);    
-            
-            $stmt = $this->dbinst->prepare($query);
-            
-            var_dump($conditionparam);
-            
-            if(!$stmt) {
-                return false;
-            }
-            
-            call_user_func_array(array($stmt, 'bind_param'), $conditionparam);
-                
-            $stmt->execute();
-            
-            $stmt->close();
-            
-            $this->afterSave($array);
+            return $this->__prepared($query, $values, false);
             
         } else {
-            //insert
             
-            $conditionparam[] = &$conditionstring;
-            
-            $vals = array_values($array['values']);
-            for($i = 0; $i < count($vals); $i++) {
-                $conditionparam[] = &$vals[$i];
-            }
-
-            $query = sprintf("INSERT INTO `%s`%s VALUES(%s)", $this->__getmodelname(), $updatestr, $valstr);
-            
-            $stmt = $this->dbinst->prepare($query);
-            
-            if(!$stmt) {
-                return false;
+            $values = array('', '');
+            $i = 0;
+            foreach($array['values'] as $key => $val) {
+                $values[0] .= $key;
+                $values[1] .= '?';
+                $values[] = $val;
+                if($i++ != count($array['values']) - 1) {
+                    $values[0] .= ',';
+                    $values[1] .= ',';
+                }
             }
             
-            call_user_func_array(array($stmt, 'bind_param'), $conditionparam);
-                
-            $stmt->execute();
+            $query = sprintf("INSERT INTO `%s` (%s) VALUES(%s)", $this->__getmodelname(), array_shift($values), array_shift($values));
             
-            $stmt->close();
-            
-            $this->afterSave($array, $array['values']);
+            return $this->__prepared($query, $values, false);
         }
         
         return true;
@@ -277,72 +215,22 @@ class Model {
         
         if(!array_key_exists('conditions', $array) || count($array['conditions']) <= 0) return false;
         
-        $conditions = "";
-        $conditionstring = "";
-        $conditioncount = 0;
-        $conditionparam = array();
+        $conditions = $this->__conditions($array);
         
-        $conditions = " WHERE ";
-        $i = 0;
-        $conditioncount = count($array['conditions']);
-        foreach($array['conditions'] as $name => $val) {
-            $conditions .= sprintf("`%s` = ?", $name);
-            $conditionstring .= "s";
-            if($i++ != ($conditioncount - 1)) {
-                $conditions .= " AND ";
-            }
-        }
+        $query = sprintf("DELETE FROM `%s` %s", $this->__getmodelname(), $conditions);
         
-        $conditionparam[] = &$conditionstring;
-        
-        $conds = array_values($array['conditions']);
-        for($i = 0; $i < count($conds); $i++) {
-            $conditionparam[] = &$conds[$i];
-        }
-        
-        $sql = sprintf("DELETE FROM `%s` %s");
-        
-        $stmt = $this->dbinst->prepare($sql);
-        
-        if(!$stmt) return false;
-        
-        //bind param here.
-        call_user_func_array(array($stmt, 'bind_param'), $conditionparam);
-        
-        $stmt->execute();
-        
-        $stmt->close();
+        $this->__prepared($query, $conditions, false);
         
         return true;
     }
     
-    public function query($sql, $array = array()) {
-        //get count of arguments
-        $stmt = $this->dbinst->prepare($sql);
-        
-        if(count($array) > 0) {
-            $ars = array();
-            $str = str_repeat("s", count($array));
-            $ars[] = &$str;
-            for($i = 0; $i < count($array); $i++) {
-                $ars[] = &$array[$i];
-            }
-            //bind param here.
-            call_user_func_array(array($stmt, 'bind_param'), $ars);
-        }
-        
-        $stmt->execute();
-        
-        $result = $stmt->get_result();
-        
-        $stmt->close();
-        
-        return $result->fetch_all(MYSQLI_ASSOC);
+    public function query($sql, $array = array(), $return = false) {
+        return $this->__prepared($sql, $array, $return);
     }
     
     public function exists($arr) {
         $value = $this->find('all', array('conditions' => $arr));
-        return ($value != false && count($value) > 0);
+        return ($value !== false && count($value) > 0);
     }
 
     public function rawquery($sql) {
@@ -352,7 +240,7 @@ class Model {
     }
     
     public function geterror() {
-        return $this->dbinst->error;
+        return $this->dbinst->errorInfo();
     }
 }
 

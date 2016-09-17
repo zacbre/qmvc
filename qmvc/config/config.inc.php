@@ -20,7 +20,7 @@
 // Database Configuration
 define("DB_USERNAME", "thrdev");
 define("DB_PASSWORD", "");
-define("DB_HOST", "");
+define("DB_HOST", "localhost");
 define("DB_NAME", "qmvc");
 
 // Required for Google's Recaptcha, Uncomment if needed

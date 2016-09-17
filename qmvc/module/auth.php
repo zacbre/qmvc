@@ -134,7 +134,7 @@ class Auth {
         }
         return false;
     }
-    
+
     public function register($args) {
         $out = $this->users->find("all", array("conditions" => array("email" => $args["email"])));
         if(!$out) {

@@ -15,9 +15,17 @@ class IndexController extends Controller {
     public function index() {
         $this->set('title', 'QMVC');
         
+        ///
+        $this->users->save(array('values' => array(
+            'firstname' => 'test',
+        ), 'conditions' => array(
+            'email' => 'admin',
+        )));
+        ///
+        
         //save a new admin user.
         if(!$this->auth->register(array(
-            'email' => 'admin',
+            'email' => 'adminas',
             'password' => 'test',
             'firstname' => 'Admin',
             'lastname' => 'Test',
