@@ -45,7 +45,6 @@ class Model {
             $key = "name";
             $this->$key = func_get_arg(0);
         }
-        
         //
         $this->db = $GLOBALS['__mydb'];
         $this->dbinst = $this->db->instance();
@@ -124,6 +123,10 @@ class Model {
         //pre-save logic such as modifying dates in a specific format etc
         return $array;
     }
+
+    public function lastinsertid() {
+        return $this->dbinst->lastInsertId();
+    }
     
     public function find($type = 'all', $array = array()) {
         
@@ -139,7 +142,7 @@ class Model {
         $options = "";
         if(array_key_exists('options', $array)) {
             foreach($array['options'] as $key => $value) {
-                $options .= sprintf("%s %s", strtoupper($key), $value);
+                $options .= sprintf("%s %s ", strtoupper($key), $value);
             }
         }
         
@@ -157,7 +160,7 @@ class Model {
         }
         
         $query = sprintf("SELECT %s FROM `%s`%s %s", $type, $this->__getmodelname(), array_shift($conditions), $options);
-        
+
         return $this->__prepared($query, $conditions);
     }
     

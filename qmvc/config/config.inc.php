@@ -41,6 +41,8 @@ define("USE_MEMCACHED", false);
 
 /* Homepage Routes */
 $router->Connect("/", array("controller" => "index"));
-$router->Connect("/404", array("controller" => "notfound", "error_page" => "404"));
-
+$router->Connect("/template", array('controller' => 'templating'));
+$router->Connect("/404", array("controller" => "404", "error_page" => "404"));
 $router->Connect('/submit', array('controller' => 'index', 'action' => 'submit'));
+
+//GLOBAL MODULES

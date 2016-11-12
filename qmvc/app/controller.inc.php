@@ -24,9 +24,9 @@ class Request {
     public $path;
     public $config;
     
-    public function __construct($POST, $args) {
+    public function __construct($args) {
         $this->args = $args;
-        $this->data = $POST;
+        $this->data = $_POST;
         $this->url = $_GET['uri'];
         $this->config = array(
           "url" => SITE_URL,
@@ -107,10 +107,12 @@ class Controller {
      * @param array $args URL arguments i.e http://mysite.com/class/action/args/args1
      *
      */
-    public function __construct($args) {
-        $this->request = new Request($_POST, $args);
+    public function __construct($args, $view) {
+        $this->request = new Request($args);
         $this->variables = array();
         
+        $this->view = $view;
+
         //create a model based on our model name.
         //controller name is the name of the model?
         $instance = $this->__loadmodel();
@@ -161,7 +163,7 @@ class Controller {
         if($data)
             ob_start();
             try {
-                require_once($path);
+                require($path);
             }
             catch (Exception $e) {
                 throw $e;
@@ -173,8 +175,9 @@ class Controller {
         return true;
     }
     
-    public function setArgs($args) {
-        $this->request = new Request($_POST, $args);
+    public function setArgs($args, $view) {
+        $this->request = new Request($args);
+        $this->view = $view;
     }
 
     /**
@@ -219,6 +222,14 @@ class Controller {
     /************************
     * User Callable Functions 
     *************************/
+    
+    public function loadFile($args, $data = false) {
+        return $this->__loadfile($args, $data);
+    }
+    
+    public function getVars() {
+        return $this->variables;
+    }
     
     /**
      *
@@ -278,7 +289,7 @@ class Controller {
     
     public function loadModel($name) {
         //load our model.
-        $this->__loadmodel($name);
+        return $this->__loadmodel($name);
     }
     
     /**
@@ -295,7 +306,11 @@ class Controller {
      * 
      */
     public function prepend($name, $content) {
-        $this->prepends[$name] = $content;
+        if(!array_key_exists($name, $this->prepends)) {
+            $this->prepends[$name] = $content;    
+        } else {
+            $this->prepends[$name] .= $content;
+        }
     }
     
     
@@ -313,7 +328,11 @@ class Controller {
      * 
      */
     public function append($name, $content) {
-        $this->appends[$name] = $content;
+        if(!array_key_exists($name, $this->appends)) {
+            $this->appends[$name] = $content;    
+        } else {
+            $this->appends[$name] .= $content;
+        }
     }
 
     /**
@@ -397,7 +416,7 @@ class Controller {
      * Sets the current layout.
      * 
      * Example:
-     * $this->layout("default");
+     * $this->setlayout("default");
      * 
      * This will make the loaded layout the "layouts/default.layout.php" file.
      * 
@@ -405,7 +424,7 @@ class Controller {
      *      The name of the layout (without .layout.php)
      * 
      */
-    public function layout($args) {
+    public function setlayout($args) {
         $this->layout = $args;
     }
     
@@ -414,7 +433,7 @@ class Controller {
      * Gets a full URL based on current path.
      * 
      * Example: 
-     * $this->view("index");
+     * $this->setview("index");
      * 
      * This will make the loaded view the "views/%CONTROLLER%/index.view.php"
      * 
@@ -422,7 +441,7 @@ class Controller {
      *      The name of the view (without .view.php)
      * 
      */
-    public function view($args) {
+    public function setview($args) {
         $this->view = $args;
     }
            

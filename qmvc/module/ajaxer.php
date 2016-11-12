@@ -67,6 +67,7 @@ class Ajaxer extends Module {
                             if(data.error) {
                                 //let them know it failed.
                                 ajaxer_error(form, data.error_msg);
+                                <?php echo $values['onerror']; ?>
                             } else {
                                 allowsubmitagain = false;
                                 ajaxer_success(form, data.msg);
@@ -86,7 +87,7 @@ class Ajaxer extends Module {
                     return false;
                 });
                 
-                jQuery("form#<?php echo $values["form"]; ?> input").blur(function(e) {
+                jQuery("form#<?php echo $values["form"]; ?> input").click(function(e) {
                     if(failedid != "") {
                         jQuery("#"+failedid).slideUp("fast");
                     }

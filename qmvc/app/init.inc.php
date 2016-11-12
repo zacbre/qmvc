@@ -35,7 +35,6 @@ if(USE_MEMCACHED) {
     $GLOBALS['_memcached'] = new Memcached("127.0.0.1:11211");
 }
 
-
 // Load all init files in the current directory
 $included_files = get_included_files();
 foreach(glob(dirname(__FILE__)."/*.inc.php") as $filename)

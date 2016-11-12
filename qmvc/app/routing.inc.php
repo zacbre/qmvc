@@ -1,6 +1,26 @@
 <?php
+/*
+    qmvc - A small but powerful MVC framework written in PHP.
+    Copyright (C) 2016 ThrDev
+    
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 class Router {
     private $routes_list;
+    private $index;
+    private $indexname;
     
     public function __construct() {
         $this->routes_list = array();
@@ -13,7 +33,8 @@ class Router {
             ?>
             <html>
             <body>
-            <pre><?php print_r($error); ?></pre>
+                <h2 style="color:red;">Error!</h2>
+                <pre><?php echo $error['message']; ?><br />On: Line <?php echo $error['line']; ?><br />Path: <?php echo $error['file']; ?></pre>
             </body>
             </html>
             <?php
@@ -41,7 +62,26 @@ class Router {
                 }
             }
         }
-        if(!array_key_exists($source, $this->routes_list)) return null;      
+        if(!array_key_exists($source, $this->routes_list)) { 
+            //first check if / route contains this function.
+            $nroute = ltrim($source, "/");
+            if(strstr($nroute, '/')) {
+                $first = strpos($nroute, '/');
+                $nroute = substr($nroute, 0, $first);
+            }
+
+            if(is_null($this->index)) {
+                //load index controller.
+                $this->indexname = $this->LoadClass($this->routes_list["/"]);
+                $this->index = new $this->indexname[0](array(), $nroute, true);
+            }
+            if(!is_callable(array($this->index, $nroute))) {
+                return null;
+            } else {
+                return array('controller' => $this->routes_list['/']['controller'], 'action' => $nroute, 'precreated' => true);
+            }
+            return null; 
+        }
         return $this->routes_list[$source];
     }
     
@@ -56,6 +96,20 @@ class Router {
             }
         }
         return null;
+    }
+    
+    public function LoadClass($route) {
+        if($route['controller'] == 'index' && !is_null($this->index)) return $this->indexname;
+        $preclasses = get_declared_classes();
+
+        if(!LoadFile(array("controller", $route["controller"].".controller.php"))) {
+            throw new Exception(sprintf("Controller not found: %s/%s", "controller", $route["controller"]));
+        }
+
+        $postclasses = get_declared_classes();
+        $class = array_diff($postclasses, $preclasses);
+        $class = array_values($class);
+        return $class;
     }
        
     public function DoRoute($source) {
@@ -91,41 +145,50 @@ class Router {
                 exit("404 page controller not found");
             }
         }
-
-        $args_piece = ltrim(substr($source, strlen($route_piece)), "/");
+        if(array_key_exists('precreated', $route)) {
+            $args_piece = ltrim(substr($source, 0, strlen($route_piece)), "/");
+        } else {
+            $args_piece = ltrim(substr($source, strlen($route_piece)), "/");
+        }
         
         $action = (array_key_exists("action", $route) ? $route["action"] : "index");
+        
         $args = array();
 
         $search = "/^(.+?)\/(.*)$/i";
         $matches = array();
-        if (preg_match($search, $args_piece, $matches))
-        {
+        
+        if (preg_match($search, $args_piece, $matches)) {
             $action = $matches[1];
             $args = explode("/", rtrim($matches[2], "/"));
         }
         $args = array_filter($args, create_function('$a', 'return $a !== "";'));
-        $preclasses = get_declared_classes();
-        if(!LoadFile(array("controller", $route["controller"].".controller.php"))) {
-            throw new Exception(sprintf("Controller not found: %s/%s", "controller", $route["controller"]));
-        }     
-        $postclasses = get_declared_classes();
         
-        $class = array_diff($postclasses, $preclasses);
-        $class = array_values($class);
-        
-        $instance = new $class[0]($args);
+        $class = $this->LoadClass($route);
+
+        $instance = new $class[0]($args, $action);
         
         $call_action = str_replace("-", "_", $action);
         
         if (!is_callable(array($instance, $call_action)))
         {
-            array_unshift($args, $action);
+            /*array_unshift($args, $action);
             $args = array_filter($args, create_function('$a', 'return $a !== "";'));
-            
             $call_action = (array_key_exists("action", $route) ? $route["action"] : "index");
-            
-            $instance->setArgs($args);
+            $instance->setArgs($args, $action);*/
+            if(!array_key_exists('error_page', $route)) {
+            //load 404 instead?
+                $error_route = $this->GetRouteByProperty("error_page", "404");
+                if(!is_null($error_route)) {
+                    $route = $error_route;
+                }
+                else {
+                    exit("404 page controller not found");
+                }
+                $class = $this->LoadClass($route);   
+            }
+            $call_action = (array_key_exists("action", $route) ? $route["action"] : "index");
+            $instance = new $class[0]($args, $action);
         }
 
         if(is_callable(array($instance, "__onload"))) {

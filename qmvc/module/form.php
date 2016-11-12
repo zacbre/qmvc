@@ -91,6 +91,33 @@ class Formify extends Module {
             $this->form .= $formsubmit;
         }
     }
+
+    public function button($name, $values = array()) {
+        /* 
+        id, class, text,
+        */
+        $out = "";
+        foreach($values as $key => $val) {
+            $out .= sprintf('%s="%s" ', $key, $val);
+        }
+        $out = rtrim($out);
+        
+        $formsubmit = sprintf('<button %s>%s</button>', $out, $name);
+        if($this->prerender) {
+            echo $formsubmit;
+        } else {
+            $this->form .= $formsubmit;
+        }
+    }
+
+    public function insert($content) {
+         if($this->prerender) {
+            echo $content;
+         }
+         else {
+            $this->form .= $content;
+         }
+    }
     
     public function hidden($name, $values = array()) {
         $values['type'] = 'hidden';
