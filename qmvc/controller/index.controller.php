@@ -16,17 +16,6 @@ class IndexController extends Controller {
     public function index() {
         $this->set('title', 'QMVC');
         
-        $this->script->enqueue('thisisatest7', '#', 100);
-        $this->script->enqueue('thisisatest7', '#', 78);
-        $this->script->enqueue('thisisatest', '#', 100);
-        $this->script->enqueue('thisisatest7', '#', 98);
-        $this->script->enqueue('thisisatest9', '#', 101);
-        $this->script->enqueue('thisisatest9', '#', 102);
-        $this->script->enqueue('thisisatest9', '#', 52);
-        $this->script->enqueue('thisisatest9', '#', 10008);
-        
-        echo $this->script->execute();
-        
         ///
         $this->users->save(array('values' => array(
             'firstname' => 'test',
@@ -76,11 +65,6 @@ class IndexController extends Controller {
             "success" => "alert alert-success",
             "error" => "alert alert-danger",
         )));
-    }
-    
-    public function wtf() {
-        echo "hi";
-        die;
     }
     
     public function submit() {
