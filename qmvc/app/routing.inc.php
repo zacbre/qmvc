@@ -27,6 +27,40 @@ class Router {
         register_shutdown_function(array($this, "ErrorHandler"));
     }
     
+    /**
+     *
+     * Connects routes to controllers and actions.
+     * 
+     * Example: 
+     * $router->Connect('/', array('controller' => 'index'));
+     * $router->Connect(array('/' => array('controller' => 'index')));
+     * 
+     * @param string|array $routes 
+     *      The name of your route or an array of routes to create.
+     * @param array $routeparams
+     *      Optional if you used an array of routes instead of string for the name. Array of options for the route.
+     * 
+     * @returns string
+     *      Content of the currently loaded view
+     * 
+     */
+    public function Connect() {
+        $num = func_num_args();
+        if($num == 1) {
+            $arr = func_get_args()[0];
+            foreach($arr as $key => $value) {
+                
+                $this->routes_list[$key] = $value;
+            }        
+        } else if ($num == 2) {
+            $source = func_get_args()[0];
+            $dest = func_get_args()[1];
+            $this->routes_list[$source] = $dest;    
+        }
+        
+        
+    }
+    
     public function ErrorHandler() {
         $error = error_get_last();
         if($error !== null) {
@@ -41,11 +75,7 @@ class Router {
         }
     }
     
-    public function Connect($source, $dest) {
-        $this->routes_list[$source] = $dest;
-    }
-    
-    public function GetRoute($source) {
+    private function GetRoute($source) {
         if(strlen($source) > 1) {
             $source = rtrim($source, "/");
         }
@@ -85,7 +115,7 @@ class Router {
         return $this->routes_list[$source];
     }
     
-    public function GetRouteByProperty($property_name, $property_value) {
+    private function GetRouteByProperty($property_name, $property_value) {
         foreach($this->routes_list as $route) {
             //search for property in array ayyy lmao
             if(array_key_exists($property_name, $route)) {

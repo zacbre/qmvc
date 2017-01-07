@@ -82,14 +82,26 @@ class Model {
             $i = 0;
             $conditions[0] = " WHERE ";
             foreach($array['conditions'] as $name => $val) {
-                $conditions[0] .= sprintf("`%s` = ?", $name);
-                $conditions[] = $val;
+                if(strstr($name, " IN")) {
+                    //this should be an array.
+                    $conditions[0] .= $name." (";
+                    foreach($val as $item) {
+                        $conditions[0] .= $this->dbinst->quote($item).",";
+                    }
+                    $conditions[0] = rtrim($conditions[0], ',');
+                    $conditions[0] .= ")";
+                } else if(strstr($name, '.')) {
+                    //multiple tables?
+                }else {
+                    $conditions[0] .= sprintf("`%s` = ?", $name);
+                    $conditions[] = $val;
+                }
+                
                 if($i++ != (count($array['conditions']) - 1)) {
                     $conditions[0] .= " AND ";
                 }
             }
         }
-        
         return $conditions;
     }
 

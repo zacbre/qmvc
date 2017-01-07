@@ -38,11 +38,42 @@ define("SESSION_NAME", "qmvc");
 
 // Use memcached? Must have php-memcached and memcached installed.
 define("USE_MEMCACHED", false);
+define("MEMCACHED_HOST", "127.0.0.1");
+define("MEMCACHED_PORT", "11211");
 
-/* Homepage Routes */
+/* 
+=== Routes === 
+Can now either be passed in one at a time or once in an array.
+
+*/
+$routes = [
+    '/' => [
+            'controller' => 'index',
+        ],
+    '/template' => [
+            'controller' => 'templating',
+        ],
+    '/404' => [
+            'controller' => 'notfound',
+            'error_page' => '404',
+        ],
+    '/submit' => [
+            'controller' => 'index',
+            'action' => 'submit',
+        ],
+    '/\/([0-9A-Za-z]{5,10})$/i' => [
+            'regex' => true,
+            'controller' => 'templating'
+        ],
+];
+
+$router->Connect($routes);
+
+// OR
+
+/*
 $router->Connect("/", array("controller" => "index"));
 $router->Connect("/template", array('controller' => 'templating'));
 $router->Connect("/404", array("controller" => "404", "error_page" => "404"));
 $router->Connect('/submit', array('controller' => 'index', 'action' => 'submit'));
-
-//GLOBAL MODULES
+*/

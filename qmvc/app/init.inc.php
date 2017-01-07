@@ -19,7 +19,6 @@
     @version 0.9.1a
 */
 
-
 ob_start();
 require_once("routing.inc.php");
 
@@ -31,8 +30,8 @@ require_once("../config/config.inc.php");
 if(USE_MEMCACHED) {
     ini_set('memcached.sess_lock_expire', 3600);
     ini_set("session.save_handler", "memcache");
-    ini_set("session.save_path", "127.0.0.1:11211");
-    $GLOBALS['_memcached'] = new Memcached("127.0.0.1:11211");
+    ini_set("session.save_path", MEMCACHED_HOST.MEMCACHED_PORT);
+    $GLOBALS['_memcached'] = new Memcached(MEMCACHED_HOST.MEMCACHED_PORT);
 }
 
 // Load all init files in the current directory

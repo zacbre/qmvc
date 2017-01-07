@@ -67,7 +67,7 @@ class Ajaxer extends Module {
                             if(data.error) {
                                 //let them know it failed.
                                 ajaxer_error(form, data.error_msg);
-                                <?php echo $values['onerror']; ?>
+                                <?php if(isset($values['onerror'])) echo $values['onerror']; ?>
                             } else {
                                 allowsubmitagain = false;
                                 ajaxer_success(form, data.msg);

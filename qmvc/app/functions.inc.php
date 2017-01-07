@@ -29,4 +29,3 @@ function LoadFile($args, $data = false) {
     if($data) return $obb;
     return true;
 }
-
