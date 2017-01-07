@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
     
-    @version 0.9.1a
+    @version 0.9.7a
 */
 
 ob_start();
