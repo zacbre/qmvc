@@ -41,6 +41,15 @@ class IndexController extends Controller {
             'email' => 'admin'
         )));
         
+        /*
+        IN query
+        $admin = $this->users->find('all', array('conditions' => array(
+            'id IN' => array(
+                '2',
+            ),
+        )));
+        */
+        
         $this->set('admin_user', $admin);
         
         $user = array(
