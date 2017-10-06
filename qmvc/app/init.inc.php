@@ -28,10 +28,10 @@ $router = new Router();
 require_once("../config/config.inc.php");
 
 if(USE_MEMCACHED) {
+    $GLOBALS['_memcached'] = new Memcached(MEMCACHED_HOST.":".MEMCACHED_PORT);
     ini_set('memcached.sess_lock_expire', 3600);
-    ini_set("session.save_handler", "memcache");
-    ini_set("session.save_path", MEMCACHED_HOST.MEMCACHED_PORT);
-    $GLOBALS['_memcached'] = new Memcached(MEMCACHED_HOST.MEMCACHED_PORT);
+    ini_set("session.save_handler", "memcached");
+    ini_set("session.save_path", MEMCACHED_HOST.":".MEMCACHED_PORT);
 }
 
 // Load all init files in the current directory
