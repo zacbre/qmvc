@@ -202,7 +202,9 @@ class Controller {
         
         if(is_callable(array($this, "__onready"))) $this->__onready();
         
-        if(!($returned = $this->__loadfile(array("views", $classname, $viewname.".view.php"), !is_null($this->layout)))) {
+        $returned = $this->__loadfile(array("views", $classname, $viewname.".view.php"), !is_null($this->layout));
+        
+        if( $returned === false ) {
             throw new Exception(sprintf("View does not exist: views/%s/%s.view.php", $classname, $viewname));
         }
 
