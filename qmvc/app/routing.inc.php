@@ -143,6 +143,7 @@ class Router {
     }
        
     public function DoRoute($source) {
+		if (is_array($source)) { $source = $source[0]; }
         $route_piece = "";
         $route = null;
         $pieces = array();
