@@ -40,4 +40,4 @@ foreach(glob(dirname(__FILE__)."/*.inc.php") as $filename)
     if(!in_array($filename, $included_files)) 
         require_once($filename);
 
-$router->DoRoute($_GET['uri']);
+$router->DoRoute();

@@ -142,8 +142,13 @@ class Router {
         return $class;
     }
        
-    public function DoRoute($source) {
-		if (is_array($source)) { $source = $source[0]; }
+    public function DoRoute() {
+		$source = $_SERVER['REQUEST_URI'];
+        // Ignore all ?.
+        if(strstr($source, "?") !== false) {
+                $source = explode("?", $source)[0];
+        }
+		
         $route_piece = "";
         $route = null;
         $pieces = array();
